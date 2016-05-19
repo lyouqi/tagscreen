@@ -1,6 +1,6 @@
 // Ionic Socket IO app
 
-var app=angular.module('ionic-socketio-chat-client', ['ionic', 'ngSanitize','btford.socket-io'])
+var app=angular.module('ionic-socketio-chat-client', ['ionic', 'ngSanitize','ngWebSocket'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -26,7 +26,7 @@ var app=angular.module('ionic-socketio-chat-client', ['ionic', 'ngSanitize','btf
     url: "/login",
     templateUrl: "templates/login.html"
   });
-  
+
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/login');
 })

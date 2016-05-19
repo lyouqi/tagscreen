@@ -1,4 +1,7 @@
-app.controller('LoginController', function ($scope, $state, $sanitize, configService, dataService, chirpService) {
+app.controller('LoginController', function ($scope, $state, $sanitize) {
+
+
+  $scope.nickname = "guest";
 
   $scope.join = function (nickname) {
     //sanitize the nickname
@@ -8,17 +11,7 @@ app.controller('LoginController', function ($scope, $state, $sanitize, configSer
     }
   }
 
-  $scope.start = function () {
 
-      dataService.begin(window.plugins.audioRecorder);
-
-
-  }
-
-
-  $scope.stop = function () {
-    window.plugins.audioRecorder.stop();
-  }
 
 
 });

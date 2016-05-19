@@ -1,9 +1,14 @@
-app.service('dataService', function (utilService, chirpService, configService) {
+app.service('dataService', function (utilService, chirpService, configService, crcService) {
 
   var service = {}
 
+  service.observers = [];
   service.errors = 0;
-  service.lastProgress = 0;
+  service.progress = 0;
+  service.contentId = "Unknown";
+  service.totalFrames = 0;
+  service.errorFrames = 0;
+
 
   service.begin = function(audioRecorder){
 
@@ -20,22 +25,40 @@ app.service('dataService', function (utilService, chirpService, configService) {
 
     service.audioRecorder.start();
 
-    // setInterval(service.pinpoint,2000);
-    service.pinpoint();
+    // setInterval(service._pinpoint,2000);
+    service._pinpoint();
 
   }
 
   service.end = function(){
-    service.stopped = true;
+    service.stopped = true;0
+    service.totalFrames = 0;
+    service.lastProgress = 0;
+    service.errorFrames = 0;
+    service.errors = 0;
     console.log("stop...");
   }
 
-  service.seekPreamble = function (signal) {
+  service.loadLibrary = function(){
+      return utilService.get("/lib");
+  }
+
+  service.registerObserver = function(callback){
+    service.observers.push(callback);
+  }
+
+  service._notifyObservers = function(){
+    for(var i=0;i<service.observers.length;i++){
+      service.observers[i]();
+    }
+  };
+
+  service._seekPreamble = function (signal) {
     console.log("seek preamble:"+signal.length);
     return utilService.post('/seekPreamble', {'signal': signal});
   }
 
-  service.read = function(count, success, error){
+  service._read = function(count, success, error){
     service.audioRecorder.read(count, function (block) {
       console.log("It is successful to read");
       success(block);
@@ -45,7 +68,7 @@ app.service('dataService', function (utilService, chirpService, configService) {
 
   }
 
-  service.resolveSymbol = function (block, offset) {
+  service._resolveSymbol = function (block, offset) {
 
     var correct = 10;
 
@@ -76,67 +99,70 @@ app.service('dataService', function (utilService, chirpService, configService) {
     return cor0 > cor1 ? 0 : 1;
   }
 
-  service.resolveContext = function (block, offset) {
+  service._convertTime = function(second){
+    var sec_num = parseInt(second, 10);
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return hours+':'+minutes+':'+seconds;
+  }
+
+  service._resolveContext = function (block, offset) {
 
     if(!offset) offset = 0;
 
     var context = [];
     for (var i = 0; i < configService.contextSize; i++) {
-      context.push(service.resolveSymbol(block, offset+i*configService.symbolLength));
+      context.push(service._resolveSymbol(block, offset+i*configService.symbolLength));
     }
 
-    var progress = "";
+    var progressStr = "";
     for (var i = 0; i < configService.progressSize; i++) {
-      progress += context[i];
+      progressStr += context[i];
     }
-    progress = parseInt(progress, 2);
+    var progress = parseInt(progressStr, 2);
 
-    var id = "";
+    var idStr = "";
     for (var i = 0; i < configService.contentSize; i++) {
-      id += context[configService.progressSize+i];
+      idStr += context[configService.progressSize+i];
     }
+    var id = parseInt(idStr,2);
 
-    if(service.lastProgress == -1){
-        service.lastProgress = progress;
+
+    var crcStr="";
+    for(var i=0;i<configService.crcSize;i++){
+      crcStr += context[configService.progressSize+configService.contentSize+i];
     }
+    var crc = parseInt(crcStr,2);
 
-    console.log("progress:"+progress+"-"+service.lastProgress);
-    console.log("different:"+Math.abs(progress-service.lastProgress));
-    if(Math.abs(progress-service.lastProgress)>5){
+
+    service.totalFrames ++ ;
+    var calculatedCrc16 = crcService.check16(progressStr+idStr);
+    if(calculatedCrc16 != crc){
+        service.errorFrames ++;
         service.errors ++;
     }else{
-        service.errors = 0;
+      service.progress = progress;
+      service.contentId = id;
+      service.errors = 0;
     }
 
-    service.lastProgress = progress;
+    service._notifyObservers();
 
+    console.log("error rate:"+service.errorFrames/service.totalFrames);
 
-    console.log(progress+":"+id+":");
-
+    console.log(progressStr + " - " + idStr + " - " + crcStr);
+    console.log(service._convertTime(progress)+"-"+id+"-"+crc);
+    console.log("crc:"+calculatedCrc16+" - "+ crc);
 
   }
 
-  service.alignPreamble = function(block){
 
-    var offset = 0;
-    var maxcor = -1;
-    for(var i=0;i<configService.preambleLength/2;i++){
-      var cor = 0;
-      for(var j=0;j<configService.preambleLength;j++){
-          cor = chirpService.preamble[j]*block[i+j];
-       }
-      cor = Math.abs(cor)/configService.preambleLength;
-      if(cor > maxcor){
-        maxcor = cor;
-        offset = i;
-      }
-    }
-
-    return offset;
-
-  }
-
-  service.resolveBlock = function (oldBlock, newBlock, algined) {
+  service._resolveBlock = function (oldBlock, newBlock, algined) {
 
 
     var block = null;
@@ -159,10 +185,11 @@ app.service('dataService', function (utilService, chirpService, configService) {
 
     if(block.length == configService.frameLength){
       console.log("block length equals to that of a frame.");
-      service.resolveContext(block,configService.preambleLength);
-      if(service.errors>5){
+      service._resolveContext(block,configService.preambleLength);
+      if(service.errors>2){
+        service.errors = 0;
         //relocate
-        service.pinpoint();
+        service._pinpoint();
       }else {
 
         if(service.stopped){
@@ -170,41 +197,40 @@ app.service('dataService', function (utilService, chirpService, configService) {
           return;
         }
         //next block
-        service.read(configService.frameLength, function (newBlock) {
-          service.resolveBlock(null, newBlock);
+        service._read(configService.frameLength, function (newBlock) {
+          service._resolveBlock(null, newBlock);
         })
       }
     } else if (block.length < configService.frameLength) {
       console.log('block length is less that of a frame.');
       count = configService.frameLength - block.length;
-      service.read(count, function (newBlock) {
-          service.resolveBlock(block, newBlock);
+      service._read(count, function (newBlock) {
+          service._resolveBlock(block, newBlock);
       })
     }else {
       console.log("block length is greater than that of a frame.");
       count = 2 * configService.frameLength - block.length;
       console.log(block.length-configService.frameLength);
-      service.read(count, function (newBlock) {
-          service.resolveBlock(block.slice(-(block.length-configService.frameLength)), newBlock);
+      service._read(count, function (newBlock) {
+          service._resolveBlock(block.slice(-(block.length-configService.frameLength)), newBlock);
       });
     }
   }
 
   //start to pinpoint the preamble
-  service.pinpoint = function () {
+  service._pinpoint = function () {
 
     console.log("=========pinpoint preamble=============");
 
     console.log("Going to read block with length of "+configService.sampleRate*2);
-    service.read(configService.frameLength*2, function (block) {
-
-        service.progress = -1;
-        service.errors = 0;
+    service._read(configService.frameLength*2, function (block) {
 
         console.log("read block from plugin:"+block.length);
-        service.seekPreamble(block).then(function (correlation) {
+        service._seekPreamble(block).then(function (correlation) {
           console.log("it successfully seek a preamble at server.");
-          service.resolveBlock(null, block.slice(correlation.index));
+          service.totalFrames=1;
+          service.errorFrames=0;
+          service._resolveBlock(null, block.slice(correlation.index));
         },function(result){
           console.log("it fails to see preamble at server.");
         });

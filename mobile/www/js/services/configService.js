@@ -4,7 +4,7 @@ app.service("configService",function(chirpService){
 
   return {
 
-    server: "http://158.132.97.90:9093",
+    server: "158.132.97.90:9093",
 
     /*****Begin chirp*******/
 
@@ -24,7 +24,9 @@ app.service("configService",function(chirpService){
 
     progressSize: 14,
 
-    contentSize: 30
+    contentSize: 14,
+
+    crcSize:16
 
     /*****End Chirp*******/
   }

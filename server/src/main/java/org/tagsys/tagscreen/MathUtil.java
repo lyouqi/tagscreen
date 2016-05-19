@@ -95,6 +95,6 @@ public class MathUtil {
 			signal[i] = signal[i]/max;
 		}
 	}
-		
+			
 
 }

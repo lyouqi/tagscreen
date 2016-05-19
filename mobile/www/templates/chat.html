@@ -1,31 +1,36 @@
-<ion-view view-title="Socket.IO Chat Demo" ng-controller="ChatController as chatCtrl" class="light-grey">
+<ion-view view-title="{{'TagScreen - ' + contentId}}" ng-controller="ChatController" class="light-grey">
  	<ion-nav-bar class="bar-dark">
       <ion-nav-buttons side="right">
-        <button class="button button-clear icon ion-android-more-vertical right8" ng-click="chatCtrl.openPopover($event)">
+        <button class="button button-clear icon ion-android-more-vertical right8" ng-click="openPopover($event)">
         </button>
       </ion-nav-buttons>
  	</ion-nav-bar>
  	<ion-content has-bouncing="true" class="content">
-	  <div ng-show="chatCtrl.connected">
-	 	<div class="log pad2">"Welcome to Socket.IO Chat – ";</div>
-	 	<div class="log">{{chatCtrl.number_message}}</div>
+	  <div ng-show="connected">
+	 	<div class="log pad2">"Welcome to TagScreen"</div>
+	 	<div class="log">{{number_message}}</div>
 	  </div>
-	  <div>
+	  <div style="padding-bottom: 20px;">
         <ul>
-        	<li ng-class="{'message':message.style,'log':!message.style}"  ng-repeat="message in chatCtrl.messages" >
-        		<span ng-show="message.style" ng-style="{color:message.color}" >{{message.username}} : </span >{{message.content}}
+        	<li ng-class="{'message':!comment.system,'log':comment.system}"  ng-repeat="comment in comments | filter:commentShow" >
+        		<span ng-show="!comment.system" ng-style="{color:comment.color}" >{{comment.username}} : </span >{{comment.text}}
+            <span ng-if="comment.progress" style="color:darkgray">({{comment.progress|progress}})</span>
         	</li>
         </ul>
 	  </div>
 	</ion-content>
-	<div class="list light-grey bottommsg">
+	<div class="list light-grey bottommsg" style="padding-bottom: 10px;">
 		<div class="item item-input-inset light-grey">
 		  <label  class="item-input-wrapper line-light-grey nopadtop">
-		    <input class="line-light-grey" ng-change="chatCtrl.updateTyping()" type="text"  placeholder="Message" ng-enter="chatCtrl.sendMessage()" ng-model="chatCtrl.message"> 
+		    <input class="line-light-grey" ng-change="updateTyping()" type="text" ng-disabled="!contentId"  placeholder="Message" ng-enter="sendMessage()" ng-model="message">
 		  </label>
 		  <div class="divsend">
-			    <button class="button button-clear ion-android-send iconsend" ng-click="chatCtrl.sendMessage()"></button>
+			    <button class="button button-clear ion-android-send iconsend" ng-disabled="!contentId" ng-click="sendMessage()"></button>
 		  </div>
 		</div>
-	</div> 	
- </ion-view>
+	</div>
+  <div class="bar bar-footer light-grey" style="padding-top: 20px;">
+    <div class="title">{{progress|progress}} ({{errorRate|number:2}})</div>
+  </div>
+</ion-view>
+
