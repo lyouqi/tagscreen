@@ -7,11 +7,15 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
   $scope.typing = false;
   $scope.lastTypingTime;
   $scope.connected = false;
+  $scope.message = "";
 
   $scope.progress = 0;
   $scope.errorRate =0;
   $scope.contentId = "Unknown";
   $scope.comments = [];
+
+
+  console.log('chat controller....');
 
 
   //Add colors
@@ -97,6 +101,8 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
   $scope.messages = [];
 
   var emit = function(type, text){
+
+      console.log('emit comments:'+type+':'+text);
       socketService.dataStream.send({
         'type':type,
         'username':$stateParams.nickname,
@@ -156,35 +162,38 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
   })
 
   //function called when user hits the send button
-  $scope.sendMessage = function () {
-    if($scope.message) {
-      emit('newMessage', $scope.message);
+  $scope.sendMessage = function (message) {
+
+    console.log("sending message:"+message);
+
+    if(message) {
+      emit('newMessage', message);
       // addMessageToList($stateParams.nickname, true, $scope.message);
-      emit('stopTyping');
+      // emit('stopTyping');
       $scope.message = ""
     }
   }
 
   //function called on Input Change
-  $scope.updateTyping = function () {
-
-    // sendUpdateTyping();
-    if ($scope.connected) {
-      if (!$scope.typing) {
-        $scope.typing = true;
-        emit('typing');
-      }
-    }
-    $scope.lastTypingTime = (new Date()).getTime();
-    $timeout(function () {
-      var typingTimer = (new Date()).getTime();
-      var timeDiff = typingTimer - $scope.lastTypingTime;
-      if (timeDiff >= TYPING_TIMER_LENGTH && $scope.typing) {
-        emit('stopTyping');
-        $scope.typing = false;
-      }
-    }, TYPING_TIMER_LENGTH)
-  }
+  // $scope.updateTyping = function () {
+  //
+  //   // sendUpdateTyping();
+  //   if ($scope.connected) {
+  //     if (!$scope.typing) {
+  //       $scope.typing = true;
+  //       // emit('typing');
+  //     }
+  //   }
+  //   $scope.lastTypingTime = (new Date()).getTime();
+  //   $timeout(function () {
+  //     var typingTimer = (new Date()).getTime();
+  //     var timeDiff = typingTimer - $scope.lastTypingTime;
+  //     if (timeDiff >= TYPING_TIMER_LENGTH && $scope.typing) {
+  //       emit('stopTyping');
+  //       $scope.typing = false;
+  //     }
+  //   }, TYPING_TIMER_LENGTH)
+  // }
 
   // Display message by adding it to the message list
   // function addMessageToList(system, username, text, progress) {
@@ -208,16 +217,16 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
   }
 
   // Adds the visual chat typing message
-  function addChatTyping(data) {
-    addMessageToList(data.username, true, " is typing");
-  }
+  // function addChatTyping(data) {
+  //   addMessageToList(data.username, true, " is typing");
+  // }
 
   // Removes the visual chat typing message
-  function removeChatTyping(username) {
-    $scope.messages = $scope.messages.filter(function (element) {
-      return element.username != username || element.content != " is typing"
-    })
-  }
+  // function removeChatTyping(username) {
+  //   $scope.messages = $scope.messages.filter(function (element) {
+  //     return element.username != username || element.content != " is typing"
+  //   })
+  // }
 
   // Return message string depending on the number of users
   function message_string(number_of_users) {

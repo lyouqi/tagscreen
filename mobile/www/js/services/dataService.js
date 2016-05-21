@@ -8,9 +8,14 @@ app.service('dataService', function (utilService, chirpService, configService, c
   service.contentId = "Unknown";
   service.totalFrames = 0;
   service.errorFrames = 0;
+  service.audioRecorder = null;
 
 
   service.begin = function(audioRecorder){
+
+    if(service.audioRecorder){
+      return;
+    }
 
     service.audioRecorder = audioRecorder;
 
@@ -31,12 +36,14 @@ app.service('dataService', function (utilService, chirpService, configService, c
   }
 
   service.end = function(){
-    service.stopped = true;0
+    console.log('Ending hardware...');
+    service.audioRecorder.stop();
+    service.audioRecorder.clear();
+    service.stopped = true;
     service.totalFrames = 0;
     service.lastProgress = 0;
     service.errorFrames = 0;
     service.errors = 0;
-    console.log("stop...");
   }
 
   service.loadLibrary = function(){
@@ -178,8 +185,6 @@ app.service('dataService', function (utilService, chirpService, configService, c
     // var offset = service.alignPreamble(block);
     // console.log("aligning preamble with offset:"+offset);
 
-
-
     var count = 0;
     var context = null;
 
@@ -193,7 +198,6 @@ app.service('dataService', function (utilService, chirpService, configService, c
       }else {
 
         if(service.stopped){
-          service.audioRecorder.stop();
           return;
         }
         //next block

@@ -138,6 +138,7 @@ app.service("crcService", function(){
 
   if (typeof(Int32Array) !== 'undefined') service.table = new Int32Array(service.table);
 
+
   service.check16 = function(input){
     var crc = 0x0000;
     for(var i=0;i<input.length;i+=4){

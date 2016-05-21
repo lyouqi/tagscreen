@@ -88,6 +88,9 @@ public class WebSocketHandler {
 	    		reply.put("username", socketMsg.username);
 	    		reply.put("numUsers", String.valueOf(numUsers));
 	    	}else if(socketMsg.type.equals("newMessage")){
+	    		
+	    	    System.out.println("Received new comments:"+socketMsg.text);
+	    		
 	    		reply.put("type", "comment");
 	    		reply.put("progress",socketMsg.progress);
 	    		reply.put("username", socketMsg.username);

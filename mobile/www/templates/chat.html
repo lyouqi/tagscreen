@@ -12,7 +12,9 @@
 	  </div>
 	  <div style="padding-bottom: 20px;">
         <ul>
-        	<li ng-class="{'message':!comment.system,'log':comment.system}"  ng-repeat="comment in comments | filter:commentShow" >
+        	<li ng-class="{'message':!comment.system,'log':comment.system}"
+              ng-repeat="comment in comments | filter:commentShow | orderBy:'progress'"
+              ng-animate="{enter: 'animate-enter', leave: 'animate-leave'}">
         		<span ng-show="!comment.system" ng-style="{color:comment.color}" >{{comment.username}} : </span >{{comment.text}}
             <span ng-if="comment.progress" style="color:darkgray">({{comment.progress|progress}})</span>
         	</li>
@@ -22,10 +24,10 @@
 	<div class="list light-grey bottommsg" style="padding-bottom: 10px;">
 		<div class="item item-input-inset light-grey">
 		  <label  class="item-input-wrapper line-light-grey nopadtop">
-		    <input class="line-light-grey" ng-change="updateTyping()" type="text" ng-disabled="!contentId"  placeholder="Message" ng-enter="sendMessage()" ng-model="message">
+		    <input class="line-light-grey"  type="text" ng-disabled="!contentId"  placeholder="Message" ng-enter="sendMessage(message)" ng-model="message">
 		  </label>
 		  <div class="divsend">
-			    <button class="button button-clear ion-android-send iconsend" ng-disabled="!contentId" ng-click="sendMessage()"></button>
+			    <button class="button button-clear ion-android-send iconsend" ng-disabled="!contentId" ng-click="sendMessage(message)"></button>
 		  </div>
 		</div>
 	</div>
