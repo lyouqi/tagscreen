@@ -78,9 +78,12 @@ public class Server {
 
 			double[] signal = new double[signalArray.size()];
 
+			System.out.println("signal:("+signal.length+")");
 			for (int i = 0; i < signalArray.size(); i++) {
 				signal[i] = signalArray.get(i).doubleValue();
+//				System.out.print(signal[i]+",");
 			}
+			System.out.println();
 
 			JsonResult result = new JsonResult();
 			Correlation cor = ChirpUtil.seekPreamable(signal);

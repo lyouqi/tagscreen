@@ -13,7 +13,7 @@
 	  <div style="padding-bottom: 20px;">
         <ul>
         	<li ng-class="{'message':!comment.system,'log':comment.system}"
-              ng-repeat="comment in comments | filter:commentShow | orderBy:'progress'"
+              ng-repeat="comment in comments | filter:commentShow"
               ng-animate="{enter: 'animate-enter', leave: 'animate-leave'}">
         		<span ng-show="!comment.system" ng-style="{color:comment.color}" >{{comment.username}} : </span >{{comment.text}}
             <span ng-if="comment.progress" style="color:darkgray">({{comment.progress|progress}})</span>

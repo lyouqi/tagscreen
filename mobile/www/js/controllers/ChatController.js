@@ -1,11 +1,10 @@
 var chat = app.controller('ChatController', function ($scope, $stateParams, $sanitize, $ionicScrollDelegate, $ionicPlatform,
-                                                      $timeout, socketService,dataService) {
+                                                      $timeout, configService,socketService,dataService) {
 
   var TYPING_TIMER_LENGTH = 3000;
 
   $scope.progress = 0;
   $scope.typing = false;
-  $scope.lastTypingTime;
   $scope.connected = false;
   $scope.message = "";
 
@@ -15,8 +14,9 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
   $scope.comments = [];
 
 
-  console.log('chat controller....');
-
+  setInterval(function(){
+    $scope.$apply();
+  },500);
 
   //Add colors
   var COLORS = [
@@ -41,7 +41,7 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
             var comment = content.comments[j];
             $scope.comments.push({progress:comment.progress, username:comment.username, color: getUsernameColor(comment.username), text:comment.text});
           }
-
+          sortComments();
           break;
         }
       }
@@ -58,6 +58,7 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
 
         $scope.contentId = dataService.contentId;
         loadLibrary();
+
       }else{
 
         // if($scope.progress-dataService.progress > 5){
@@ -77,8 +78,8 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
 
   //load audio component
   var loadHardware = function(){
-    if(window.plugins && window.plugins.audioRecorder){
-      dataService.begin(window.plugins.audioRecorder);
+    if(window.plugins && window.plugins.audioReader){
+      dataService.start(window.plugins.audioReader);
     }else{
       setTimeout(loadHardware,100);
     }
@@ -87,15 +88,6 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
 
   loadHardware();
 
-
-
-  $scope.restart = function () {
-    dataService.end();
-    setTimeout(function(){
-      dataService.begin(window.plugins.audioRecorder);
-    },100);
-
-  }
 
   //initializing messages array
   $scope.messages = [];
@@ -110,6 +102,14 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
         'progress':$scope.progress,
         'contentId':$scope.contentId
       });
+  }
+
+  var sortComments = function(){
+    if($scope.comments){
+      $scope.comments.sort(function(a,b){
+        return a.progress-b.progress;
+      })
+    }
   }
 
   socketService.dataStream.onOpen(function(){
@@ -142,20 +142,23 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
               color: getUsernameColor(data.username),
               text: data.text
             });
+
+            sortComments();
           }
           // addMessageToList(data.username, true, data.comment, data.progress)
         }
 
       }else if(data.type=="userJoined"){
 
-        $scope.comments.push({text:data.username + " joined", system:true});
-        $scope.comments.push({text:message_string(data.numUsers), system:true});
-
+        $scope.comments.push({text:data.username + " joined", system:true, progress:$scope.progress});
+        $scope.comments.push({text:message_string(data.numUsers), system:true,progress:$scope.progress});
+        sortComments();
 
       } else if(data.type=="userLeft"){
 
-        $scope.comments.push({text:data.username + " left", system:true});
-        $scope.comments.push({text:message_string(data.numUsers), system:true});
+        $scope.comments.push({text:data.username + " left", system:true,progress:$scope.progress});
+        $scope.comments.push({text:message_string(data.numUsers), system:true,progress:$scope.progress});
+        sortComments();
 
       }
 
@@ -174,35 +177,7 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
     }
   }
 
-  //function called on Input Change
-  // $scope.updateTyping = function () {
-  //
-  //   // sendUpdateTyping();
-  //   if ($scope.connected) {
-  //     if (!$scope.typing) {
-  //       $scope.typing = true;
-  //       // emit('typing');
-  //     }
-  //   }
-  //   $scope.lastTypingTime = (new Date()).getTime();
-  //   $timeout(function () {
-  //     var typingTimer = (new Date()).getTime();
-  //     var timeDiff = typingTimer - $scope.lastTypingTime;
-  //     if (timeDiff >= TYPING_TIMER_LENGTH && $scope.typing) {
-  //       emit('stopTyping');
-  //       $scope.typing = false;
-  //     }
-  //   }, TYPING_TIMER_LENGTH)
-  // }
 
-  // Display message by adding it to the message list
-  // function addMessageToList(system, username, text, progress) {
-  //   username = $sanitize(username);
-  //   removeChatTyping(username);
-  //   var color = system ? null:getUsernameColor(username);
-  //   $scope.messages.push({content: $sanitize(message), style: style_type, username: username, color: color, progress: progress})
-  //   $ionicScrollDelegate.scrollBottom();
-  // }
 
   //Generate color for the same user.
   function getUsernameColor(username) {
@@ -215,19 +190,7 @@ var chat = app.controller('ChatController', function ($scope, $stateParams, $san
     var index = Math.abs(hash % COLORS.length);
     return COLORS[index];
   }
-
-  // Adds the visual chat typing message
-  // function addChatTyping(data) {
-  //   addMessageToList(data.username, true, " is typing");
-  // }
-
-  // Removes the visual chat typing message
-  // function removeChatTyping(username) {
-  //   $scope.messages = $scope.messages.filter(function (element) {
-  //     return element.username != username || element.content != " is typing"
-  //   })
-  // }
-
+  
   // Return message string depending on the number of users
   function message_string(number_of_users) {
     return number_of_users === 1 ? "there's 1 participant" : "there are " + number_of_users + " participants"

@@ -8,37 +8,40 @@ app.service('dataService', function (utilService, chirpService, configService, c
   service.contentId = "Unknown";
   service.totalFrames = 0;
   service.errorFrames = 0;
-  service.audioRecorder = null;
+  service.audioReader = null;
 
 
-  service.begin = function(audioRecorder){
+  service.start = function(audioReader){
 
-    if(service.audioRecorder){
+    if(service.audioReader){
       return;
     }
 
-    service.audioRecorder = audioRecorder;
 
-    service.audioRecorder.create(function (msg) {
+    service.audioReader = audioReader;
+
+    service.audioReader.create({
+      channel:16// 16 mono, 12 stereo
+    }, function (msg) {
 
       console.log('it is successful to create audio recorder');
 
     }, function (msg) {
-      console.log("It fails to create an AudioRecorder");
+      console.log("It fails to create an audioReader");
       console.log(msg);
     });
 
-    service.audioRecorder.start();
+    service.audioReader.start();
 
     // setInterval(service._pinpoint,2000);
     service._pinpoint();
 
   }
 
-  service.end = function(){
+  service.stop = function(){
     console.log('Ending hardware...');
-    service.audioRecorder.stop();
-    service.audioRecorder.clear();
+    service.audioReader.stop();
+    service.audioReader.clear();
     service.stopped = true;
     service.totalFrames = 0;
     service.lastProgress = 0;
@@ -66,8 +69,10 @@ app.service('dataService', function (utilService, chirpService, configService, c
   }
 
   service._read = function(count, success, error){
-    service.audioRecorder.read(count, function (block) {
+    service.audioReader.read(count, 0, function (result) {
       console.log("It is successful to read");
+
+      var block = result.leftChannel;
       success(block);
     },function(result){
         console.log(result);
@@ -228,8 +233,8 @@ app.service('dataService', function (utilService, chirpService, configService, c
 
     console.log("Going to read block with length of "+configService.sampleRate*2);
     service._read(configService.frameLength*2, function (block) {
-
         console.log("read block from plugin:"+block.length);
+
         service._seekPreamble(block).then(function (correlation) {
           console.log("it successfully seek a preamble at server.");
           service.totalFrames=1;

@@ -1,5 +1,5 @@
 
-cordova plugin remove cordova-plugin-audio-recorder
+cordova plugin remove cordova-plugin-audio-reader
 
 cordova plugin add ../../cordova-plugin-audio
 
