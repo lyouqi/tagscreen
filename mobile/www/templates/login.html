@@ -4,12 +4,11 @@
 	  	<label class="item item-input linegrey" >
 	    	<input type="text" class=" white" placeholder="What is your nickname?" ng-model="nickname">
 	  	</label>
-
-	  	<button class="button button-block button-grey" ng-click="join(nickname)">Join</button>
-
       <label class="item item-input linegrey" >
         <input type="text" class="linegrey white" placeholder="server IP?" ng-model="server">
       </label>
-	  </div>
+      <button class="button button-block button-grey" ng-click="join(nickname, server)">Join</button>
+
+    </div>
   </ion-content>
 </ion-view>

@@ -14,11 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.mina.common.RuntimeIOException;
-import org.sql2o.logging.SysOutLogger;
+import org.eclipse.jetty.io.RuntimeIOException;
 
 import com.google.gson.Gson;
 
@@ -33,10 +29,6 @@ public class Server {
 
 	public static void main(String[] args) {
 
-
-		BasicConfigurator.configure();
-
-		Logger.getRootLogger().setLevel(Level.INFO);
 
 		Spark.port(9093);
 

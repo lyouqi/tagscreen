@@ -13,6 +13,8 @@ app.service('dataService', function (utilService, chirpService, configService, c
 
   service.start = function(audioReader){
 
+    console.log("server ip:"+configService.server);
+
     if(service.audioReader){
       return;
     }
@@ -20,14 +22,14 @@ app.service('dataService', function (utilService, chirpService, configService, c
 
     service.audioReader = audioReader;
 
-    service.audioReader.create({
+    service.audioReader.init({
       channel:16// 16 mono, 12 stereo
     }, function (msg) {
 
-      console.log('it is successful to create audio recorder');
+      console.log('it is successful to init audio recorder');
 
     }, function (msg) {
-      console.log("It fails to create an audioReader");
+      console.log("It fails to init an audioReader");
       console.log(msg);
     });
 

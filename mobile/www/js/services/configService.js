@@ -4,7 +4,9 @@ app.service("configService",function(chirpService){
 
   return {
 
-    server: "158.132.97.90:9093",
+    server: "175.159.22.27",
+
+    port:"9093",
 
     /*****Begin chirp*******/
 

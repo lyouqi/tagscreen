@@ -44,27 +44,7 @@
 			<version>1.16.2</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.sql2o</groupId>
-			<artifactId>sql2o</artifactId>
-			<version>1.5.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>9.4-1201-jdbc41</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>18.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<version>3.3.1</version>
-			<scope>test</scope>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
@@ -76,11 +56,6 @@
 			<artifactId>gson</artifactId>
 			<version>2.3.1</version>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.llrp</groupId>
-			<artifactId>ltk</artifactId>
-			<version>10.16.0.240</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -119,7 +94,6 @@
 
 	</dependencies>
 
-
 	<build>
 		<plugins>
 			<plugin>
@@ -136,11 +110,26 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.2.1</version>
 				<configuration>
-					<mainClass>org.tagsys.tagsee.HubLauncher</mainClass>
+					<mainClass>org.tagsys.tagscreen.Server</mainClass>
 					<arguments>
 					</arguments>
 				</configuration>
 			</plugin>
+			<plugin>  
+            <groupId>org.apache.maven.plugins</groupId>  
+            <artifactId>maven-assembly-plugin</artifactId>  
+            <version>2.5.5</version>  
+            <configuration>  
+                <archive>  
+                    <manifest>  
+                        <mainClass>com.xxg.Main</mainClass>  
+                    </manifest>  
+                </archive>  
+                <descriptorRefs>  
+                    <descriptorRef>jar-with-dependencies</descriptorRef>  
+                </descriptorRefs>  
+            </configuration>  
+        </plugin>  
 		</plugins>
 	</build>
   
